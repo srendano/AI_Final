@@ -42,28 +42,56 @@ class GameProblem(SearchProblem):
         #and decide type of terrain, num or orders
 
 
-        # self.CONFIG['map_size'][0] -> x-coordinate (max) east-most
-        # self.CONFIG['map_size'][1] -> y-coordinate (max) south-most
+        # self.CONFIG['map_size'][0] - 1 -> x-coordinate (max) east-most
+        # self.CONFIG['map_size'][1] - 1 -> y-coordinate (max) south-most
 
 
         #actions is a list []
-        actions = list(MOVES);
+        actions = list(self.MOVES)
+
+        print(state[0], state[1])
 
         #West
-        if (state[0] - 1) < 0 or getAttribute(state[0] -1 , state[1]) == 'building':
+        if (state[0] - 1) < 0:
+            actions.remove('West')
+
+        elif self.getAttribute((state[0] - 1, state[1]), 'blocked'):
             actions.remove('West')
 
         #North
-        if (state[1] - 1) < 0 or getAttribute(state[0] , state[1] - 1) == 'building':
+        if (state[1] - 1) < 0: 
+            actions.remove('North')
+
+        elif self.getAttribute((state[0], state[1] - 1), 'blocked'):
             actions.remove('North')
 
         #East
-        if (state[1] - 1) > self.CONFIG['map_size'][0] or getAttribute(state[0] + 1, state[1]) == 'building':
+        if (state[0] + 1) > (self.CONFIG['map_size'][0] - 1):
+            actions.remove('East')
+
+        elif self.getAttribute((state[0] + 1, state[1]), 'blocked'):
             actions.remove('East')
 
         #South
-        if(state[1] + 1) > self.CONFIG['map_size'][1] or getAttribute(state[0] , state[1] + 1) == 'building':
+        if (state[1] + 1) > (self.CONFIG['map_size'][1] - 1):
             actions.remove('South')
+
+        elif self.getAttribute((state[0], state[1] + 1), 'blocked'):
+            actions.remove('South')
+
+
+        #Load
+        if state == self.POSITIONS['pizza']:
+            actions.append('Load')
+
+        #Unload
+        if state == self.POSITIONS['customer1'][0] or state ==self.POSITIONS['customer1'][1] or ['customer2']:
+            actions.append('Unload')
+            #Check if building needs pizza (Get pending Requests)
+            #Prob use"unload": True,
+
+
+        #NEED TO ADD UNOAD / LOAD AS WEll In HERE;
         
         return actions
     
@@ -89,7 +117,15 @@ class GameProblem(SearchProblem):
         elif action == 'South':
             next_state = (state[0], state[1] + 1)
 
-        # next_state = 0 #MODIFY 
+        else:
+            next_state = state #default val
+
+        # elif action == 'Load':
+        #     #DO SOMETHING
+
+        # elif action == 'Unload':
+            #DO SOMETHING
+            #SET CUST count at position --
 
         return next_state
 
@@ -102,7 +138,7 @@ class GameProblem(SearchProblem):
         '''Returns true if state is the final state
         '''
         #Compare state to self.goal
-        return state == self.goal; 
+        return state == self.GOAL; 
 
         #MAYBE return to base after?
 
@@ -133,7 +169,7 @@ class GameProblem(SearchProblem):
 
 
         initial_state = self.AGENT_START
-        final_state= (0,1) 
+        final_state= (9,3) 
 
         #Tuple if state is location NOT list or dict
         

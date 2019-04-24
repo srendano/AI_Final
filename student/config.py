@@ -4,7 +4,7 @@ configuration = {
 "type": "load", #random
 "seed": None,
 "file": "./student/map.txt",
-"map_size": [10, 5],
+"map_size": [10, 4],
 "delay": 0.1,
 "debugMap": False,
 "debug": False,
