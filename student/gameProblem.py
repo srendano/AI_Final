@@ -114,7 +114,7 @@ class GameProblem(SearchProblem):
             next_state = state
             self.PIZZA_CNT += 1
 
-        elif action == 'unload':
+        elif action == 'Unload':
             next_state = state
             self.PIZZA_CNT -= 1
             tileAttributes = self.MAP[position[0]][position[1]][2]
