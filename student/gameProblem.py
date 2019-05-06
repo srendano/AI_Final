@@ -39,8 +39,6 @@ class GameProblem(SearchProblem):
 
         actions = list(self.MOVES)
 
-        # print(state[0], state[1])
-
         #West
         if (state[0] - 1) < 0:
             actions.remove('West')
@@ -130,8 +128,6 @@ class GameProblem(SearchProblem):
             customer_cnt = self.getPendingRequests(state)
             next_state = (state[0], state[1], state[2] - 1, state[3] - 1, customer_cnt- 1 if customer_cnt > 1 else None)
             #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
-
-        # print(str(state[0]) + ', '+ str(state[1]) + ': ' + str(action))
         
         return next_state
 
@@ -142,7 +138,8 @@ class GameProblem(SearchProblem):
         '''Returns true if state is the final state
         '''
         self.debugPrint(state)
-        return state == self.GOAL
+        #return state == self.GOAL
+        return state[3] == 0
         #State == self.goal is to return to Base (should be final state once orders are fullfilled)
 
     def cost(self, state, action, state2):
@@ -196,8 +193,8 @@ class GameProblem(SearchProblem):
         #Tuple if state is location NOT list or dict
         
         #algorithm= simpleai.search.astar
-        #algorithm= simpleai.search.breadth_first
-        algorithm= simpleai.search.depth_first
+        algorithm= simpleai.search.breadth_first
+        #algorithm= simpleai.search.depth_first
         #algorithm= simpleai.search.limited_depth_first
 
         return initial_state,final_state, algorithm, customers
@@ -242,6 +239,8 @@ class GameProblem(SearchProblem):
         print(state)
 
         #PROBLEM IS THAT BFS is getting to a point where state (9,0,0,2) has already been found so it will not find path through (4,3,0,2)
+
+        #Still a problem because a state with no cust_count may be necessary to traverse on the path
 
 
     # -------------------------------------------------------------- #
