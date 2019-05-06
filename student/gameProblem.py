@@ -37,8 +37,6 @@ class GameProblem(SearchProblem):
         # self.CONFIG['map_size'][0] - 1 -> x-coordinate (max) east-most
         # self.CONFIG['map_size'][1] - 1 -> y-coordinate (max) south-most
 
-
-        #actions is a list []
         actions = list(self.MOVES)
 
         # print(state[0], state[1])
@@ -71,10 +69,17 @@ class GameProblem(SearchProblem):
         elif self.getAttribute((state[0], state[1] + 1), 'blocked'):
             actions.remove('South')
 
+        # #Load
+        # if state[0] == self.POSITIONS['pizza'][0][0] and state[1] == self.POSITIONS['pizza'][0][1] and state[2] < 2 and state[3] > 0: #and self.PIZZA_CNT < 2:
+        #     load_list = ['Load']
+        #     actions = load_list
+
+        #     #With this implementation there is a probably a bug when state[3] = 1, because it would make you pick up 2 pizzas (even tho u only need one)
 
         #Load
         if state[0] == self.POSITIONS['pizza'][0][0] and state[1] == self.POSITIONS['pizza'][0][1] and state[2] < 2: #and self.PIZZA_CNT < 2:
             actions.append('Load')
+
 
         #Unload
         #if state == self.POSITIONS['customer1'][0] or state == self.POSITIONS['customer1'][1] or state == self.POSITIONS['customer2']:
@@ -82,8 +87,8 @@ class GameProblem(SearchProblem):
 
         if self.CUSTOMERS[state[0]][state[1]] > 0 and state[2] > 0: #and self.PIZZA_CNT > 0:
             actions.append('Unload')
-            #Check if building needs pizza (Get pending Requests)
-            #Prob use"unload": True,
+            # unload_list = ['Unload']
+            # actions = unload_list
 
         return actions
     
@@ -93,27 +98,31 @@ class GameProblem(SearchProblem):
         '''
 
         next_state = state #Default Val
+        customer_cnt = self.getPendingRequests(state)
 
         if action == 'West':
-            next_state = (state[0]-1, state[1], state[2], state[3])
+            next_state = (state[0] - 1, state[1], state[2], state[3], customer_cnt)
 
         elif action == 'North':
-           next_state = (state[0], state[1] - 1, state[2], state[3])
+           next_state = (state[0], state[1] - 1, state[2], state[3], customer_cnt)
 
         elif action == 'East':
-            next_state = (state[0]+1, state[1], state[2], state[3])
+            next_state = (state[0] + 1, state[1], state[2], state[3], customer_cnt)
 
         elif action == 'South':
-            next_state = (state[0], state[1] + 1, state[2], state[3])
+            next_state = (state[0], state[1] + 1, state[2], state[3], customer_cnt)
 
         elif action == 'Load':
-            next_state = next_state = (state[0], state[1], state[2] + 1, state[3])
+            next_state = (state[0], state[1], state[2] + 1, state[3], customer_cnt)
+            #x,y unchanged, but state[2] "pizza_cnt" +1
 
         elif action == 'Unload':
-            
             self.CUSTOMERS[state[0]][state[1]] -= 1
-            next_state = (state[0], state[1], state[2] - 1, state[3] - 1)
+            next_state = (state[0], state[1], state[2] - 1, state[3] - 1, customer_cnt- 1 if customer_cnt > 1 else None)
+            #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
 
+        # print(str(state[0]) + ', '+ str(state[1]) + ': ' + str(action))
+        
         return next_state
 
         # The search algorithm will select a node among the expanded ones (fringe)
@@ -122,7 +131,7 @@ class GameProblem(SearchProblem):
     def is_goal(self, state):
         '''Returns true if state is the final state
         '''
-
+        self.debugPrint(state)
         return state == self.GOAL
         #State == self.goal is to return to Base (should be final state once orders are fullfilled)
 
@@ -168,16 +177,12 @@ class GameProblem(SearchProblem):
                 total_order_cnt += order_num
 
         print(customers)
+        cust_cnt = None
 
-        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt)
+        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, cust_cnt)
+        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = customer_cnt
 
-        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, 
-
-        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0)
-
-        #print(str(x) + ' ,' + str(y) + 'order count: ' + str(order_cnt)) #FOR TESTING PURPORSES
-
-
+        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0, None)
         #Tuple if state is location NOT list or dict
         
         #algorithm= simpleai.search.astar
@@ -190,7 +195,7 @@ class GameProblem(SearchProblem):
     def printState (self,state):
         '''Return a string to pretty-print the state '''
         
-        pps= '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3])
+        pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3])
         return (pps)
 
     def getPendingRequests (self,state):
@@ -207,6 +212,8 @@ class GameProblem(SearchProblem):
         else:
             return None
 
+        #This is only being called at the end? How can it update in real time on the map?
+
 
     # --------------- Helper Functions ----------------- 
 
@@ -218,6 +225,14 @@ class GameProblem(SearchProblem):
                 return tileAttributes['objects']
         else:
             return None
+
+    def debugPrint(self, state):
+        # print('Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 
+        #     'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3]) + '\n' + '---------------' + '\n')
+        print(state)
+
+        #PROBLEM IS THAT BFS is getting to a point where state (9,0,0,2) has already been found so it will not find path through (4,3,0,2)
+
 
     # -------------------------------------------------------------- #
     # --------------- DO NOT EDIT BELOW THIS LINE  ----------------- #
