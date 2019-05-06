@@ -97,36 +97,24 @@ class GameProblem(SearchProblem):
         next_state = state #Default Val
 
         if action == 'West':
-            next_state = (state[0] - 1, state[1], state[2], state[3], 0)
-            customer_cnt = self.getPendingRequests(next_state)
-            next_state = (state[0] - 1, state[1], state[2], state[3], customer_cnt)
-
-            #This isn't really clean solution, but seems like best way to update the customer_cnt for the new state
+            next_state = (state[0] - 1, state[1], state[2], state[3])
 
         elif action == 'North':
-           next_state = (state[0], state[1] - 1, state[2], state[3], 0)
-           customer_cnt = self.getPendingRequests(next_state)
-           next_state = (state[0], state[1] - 1, state[2], state[3], customer_cnt)
+           next_state = (state[0], state[1] - 1, state[2], state[3])
 
         elif action == 'East':
-            next_state = (state[0] + 1, state[1], state[2], state[3], 0)
-            customer_cnt = self.getPendingRequests(next_state)
-            next_state = (state[0] + 1, state[1], state[2], state[3], customer_cnt)
+            next_state = (state[0] + 1, state[1], state[2], state[3])
 
         elif action == 'South':
-            next_state = (state[0], state[1] + 1, state[2], state[3], 0)
-            customer_cnt = self.getPendingRequests(next_state)
-            next_state = (state[0], state[1] + 1, state[2], state[3], customer_cnt)
+            next_state = (state[0], state[1] + 1, state[2], state[3])
 
         elif action == 'Load':
-            customer_cnt = self.getPendingRequests(state)
-            next_state = (state[0], state[1], state[2] + 1, state[3], customer_cnt)
+            next_state = (state[0], state[1], state[2] + 1, state[3])
             #x,y unchanged, but state[2] "pizza_cnt" +1
 
         elif action == 'Unload':
             self.CUSTOMERS[state[0]][state[1]] -= 1
-            customer_cnt = self.getPendingRequests(state)
-            next_state = (state[0], state[1], state[2] - 1, state[3] - 1, customer_cnt- 1 if customer_cnt > 1 else None)
+            next_state = (state[0], state[1], state[2] - 1, state[3] - 1)
             #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
         
         return next_state
@@ -139,7 +127,7 @@ class GameProblem(SearchProblem):
         '''
         self.debugPrint(state)
         #return state == self.GOAL
-        return state[3] == 0
+        return state == self.GOAL
         #State == self.goal is to return to Base (should be final state once orders are fullfilled)
 
     def cost(self, state, action, state2):
@@ -184,12 +172,11 @@ class GameProblem(SearchProblem):
                 total_order_cnt += order_num
 
         print(customers)
-        cust_cnt = None
 
-        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, cust_cnt)
+        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt)
         #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = customer_cnt
 
-        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0, None)
+        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0)
         #Tuple if state is location NOT list or dict
         
         #algorithm= simpleai.search.astar
