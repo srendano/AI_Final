@@ -103,6 +103,8 @@ class GameProblem(SearchProblem):
             customer_cnt = self.getPendingRequests(next_state)
             next_state = (state[0] - 1, state[1], state[2], state[3], customer_cnt)
 
+            #This isn't really clean solution, but seems like best way to update the customer_cnt for the new state
+
         elif action == 'North':
            next_state = (state[0], state[1] - 1, state[2], state[3], 0)
            customer_cnt = self.getPendingRequests(next_state)
