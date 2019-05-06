@@ -73,18 +73,18 @@ class GameProblem(SearchProblem):
 
 
         #Load
-        if state == self.POSITIONS['pizza'][0] and self.PIZZA_CNT < 2:
+        if state == self.POSITIONS['pizza'][0]: #and self.PIZZA_CNT < 2:
             actions.append('Load')
 
         #Unload
         #if state == self.POSITIONS['customer1'][0] or state == self.POSITIONS['customer1'][1] or state == self.POSITIONS['customer2']:
-        if self.getAttribute(state, 'unload') and self.PIZZA_CNT > 0:
+        #if self.getAttribute(state, 'unload') and self.PIZZA_CNT > 0:
+
+        if self.getAttribute(state, 'unload'): #and self.PIZZA_CNT > 0:
             actions.append('Unload')
             #Check if building needs pizza (Get pending Requests)
             #Prob use"unload": True,
 
-
-        #NEED TO ADD UNOAD / LOAD AS WEll In HERE;
         
         return actions
     
@@ -93,10 +93,7 @@ class GameProblem(SearchProblem):
         '''Returns the state reached from this state when the given action is executed
         '''
 
-
-        #Expands curr node; return new state reached executing specified action in curr state
-
-        #How is the action parameter picked? Presumably an output of the algorithm, but how does that work?
+        print(str(action))
 
         if action == 'West':
             next_state = (state[0]-1, state[1])
@@ -115,23 +112,25 @@ class GameProblem(SearchProblem):
             self.PIZZA_CNT += 1
 
         elif action == 'Unload':
+            # print(self.MAP[state[0]][state[1]][2])
+            # print('original pizza count: ' + str(self.PIZZA_CNT))
+            # print('original order count: ' + str(self.ORDER_CNT))
+            
             next_state = state
             self.PIZZA_CNT -= 1
-            tileAttributes = self.MAP[position[0]][position[1]][2]
-            tileAttributes['objects'] -= 1
+            tileAttributes = self.MAP[state[0]][state[1]][2]
+            if 'objects' in tileAttributes.keys():
+                tileAttributes['objects'] -= 1
             if tileAttributes['objects'] == 0:
-                 tileAttributes['unload'] = false
-                 self.ORDER_CNT -= 1
+                tileAttributes['unload'] = False
+            self.ORDER_CNT -= 1
+
+            # print(self.MAP[state[0]][state[1]][2])
+            # print('new pizza count: ' + str(self.PIZZA_CNT))
+            # print('new order count: ' + str(self.ORDER_CNT))
 
         else:
             next_state = state #default val
-
-        # elif action == 'Load':
-        #     #DO SOMETHING
-
-        # elif action == 'Unload':
-            #DO SOMETHING
-            #SET CUST count at position --
 
         return next_state
 
@@ -143,10 +142,9 @@ class GameProblem(SearchProblem):
     def is_goal(self, state):
         '''Returns true if state is the final state
         '''
-        #Compare state to self.goal
-        return (state == self.GOAL and self.ORDER_CNT == 0)
 
-        #MAYBE return to base after?
+        return self.ORDER_CNT == 0 #(state == self.GOAL and self.ORDER_CNT == 0)
+        #State == self.goal is to return to Base (should be final state once orders are fullfilled)
 
     def cost(self, state, action, state2):
         '''Returns the cost of applying `action` from `state` to `state2`.
@@ -174,7 +172,8 @@ class GameProblem(SearchProblem):
 	print 'CONFIG: ', self.CONFIG, '\n'
 
 
-        initial_state = self.AGENT_START
+        initial_state = (self.AGENT_START)
+        #initial_state[0] = coordinates, #initial_state[1] = pizza_cnt, #initial_state[2] = pizza_cnt, 
         final_state = self.POSITIONS['pizza'][0]
         pizza_cnt = 0
         order_cnt = 0
@@ -185,15 +184,13 @@ class GameProblem(SearchProblem):
                 if order_num == None:
                     order_num = 0
                 order_cnt += order_num
-                print(str(x) + ' ,' + str(y) + 'order count: ' + str(order_cnt))
+                #print(str(x) + ' ,' + str(y) + 'order count: ' + str(order_cnt)) #FOR TESTING PURPORSES
 
 
         #Tuple if state is location NOT list or dict
         
-        # initial_state = None
-        # final_state= None
-        algorithm= simpleai.search.astar
-        #algorithm= simpleai.search.breadth_first
+        #algorithm= simpleai.search.astar
+        algorithm= simpleai.search.breadth_first
         #algorithm= simpleai.search.depth_first
         #algorithm= simpleai.search.limited_depth_first
 
@@ -202,7 +199,7 @@ class GameProblem(SearchProblem):
     def printState (self,state):
         '''Return a string to pretty-print the state '''
         
-        pps= 'Pizza Count ' + str(self.PIZZA_CNT)
+        pps= '\n' + 'Pizza Count: ' + str(self.PIZZA_CNT) + '\n' + 'Order Count: ' + str(self.ORDER_CNT)
         return (pps)
 
     def getPendingRequests (self,state):
