@@ -183,8 +183,8 @@ class GameProblem(SearchProblem):
         #Tuple if state is location NOT list or dict
         
         #algorithm= simpleai.search.astar
-        algorithm= simpleai.search.breadth_first
-        #algorithm= simpleai.search.depth_first
+        #algorithm= simpleai.search.breadth_first
+        algorithm= simpleai.search.depth_first
         #algorithm= simpleai.search.limited_depth_first
 
         return initial_state,final_state, algorithm
