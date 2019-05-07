@@ -82,10 +82,9 @@ class GameProblem(SearchProblem):
         #if state == self.POSITIONS['customer1'][0] or state == self.POSITIONS['customer1'][1] or state == self.POSITIONS['customer2']:
         #if self.getAttribute(state, 'unload') and self.PIZZA_CNT > 0:
 
-        if self.CUSTOMERS[state[0]][state[1]] > 0 and state[2] > 0:
-            actions.append('Unload')
-            # unload_list = ['Unload']
-            # actions = unload_list
+        #if (state in self.POSITIONS['customer1'] or state in self.POSITIONS['customer2']) and state[2] > 0:
+       	if self.CUSTOMERS[state[0]][state[1]] > 0 and state[2] > 0:
+       	    actions.append('Unload')
 
         return actions
     
@@ -97,24 +96,24 @@ class GameProblem(SearchProblem):
         next_state = state #Default Val
 
         if action == 'West':
-            next_state = (state[0] - 1, state[1], state[2], state[3])
+            next_state = (state[0] - 1, state[1], state[2], state[3], state[4])
 
         elif action == 'North':
-           next_state = (state[0], state[1] - 1, state[2], state[3])
+           next_state = (state[0], state[1] - 1, state[2], state[3], state[4])
 
         elif action == 'East':
-            next_state = (state[0] + 1, state[1], state[2], state[3])
+            next_state = (state[0] + 1, state[1], state[2], state[3], state[4])
 
         elif action == 'South':
-            next_state = (state[0], state[1] + 1, state[2], state[3])
+            next_state = (state[0], state[1] + 1, state[2], state[3], state[4])
 
         elif action == 'Load':
-            next_state = (state[0], state[1], state[2] + 1, state[3])
+            next_state = (state[0], state[1], state[2] + 1, state[3], state[4])
             #x,y unchanged, but state[2] "pizza_cnt" +1
 
         elif action == 'Unload':
-            self.CUSTOMERS[state[0]][state[1]] -= 1
-            next_state = (state[0], state[1], state[2] - 1, state[3] - 1)
+        	self.CUSTOMERS[state[0]][state[1]] -= 1
+        	next_state = (state[0], state[1], state[2] - 1, state[3] - 1, self.CUSTOMERS[state[0]][state[1]])
             #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
         
         return next_state
@@ -173,10 +172,14 @@ class GameProblem(SearchProblem):
 
         print(customers)
 
-        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt)
+        self.CUSTOMERS = customers
+        customer_cnt = customers[self.AGENT_START[0]][ self.AGENT_START[1]]
+
+        initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, customer_cnt)
         #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = customer_cnt
 
-        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0)
+        final_customers =[(0 for i in range(y_size))for j in range(x_size)]
+        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0, 0)
         #Tuple if state is location NOT list or dict
         
         #algorithm= simpleai.search.astar
@@ -184,7 +187,7 @@ class GameProblem(SearchProblem):
         #algorithm= simpleai.search.depth_first
         #algorithm= simpleai.search.limited_depth_first
 
-        return initial_state,final_state, algorithm, customers
+        return initial_state,final_state, algorithm
         
     def printState (self,state):
         '''Return a string to pretty-print the state '''
@@ -202,7 +205,7 @@ class GameProblem(SearchProblem):
         y = state[1]
 
         if self.CUSTOMERS[x][y] != 0:
-            return self.CUSTOMERS[x][y]
+            return state[4][x][y]
         else:
             return None
 
@@ -224,7 +227,6 @@ class GameProblem(SearchProblem):
         # print('Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 
         #     'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3]) + '\n' + '---------------' + '\n')
         print(state)
-
         #PROBLEM IS THAT BFS is getting to a point where state (9,0,0,2) has already been found so it will not find path through (4,3,0,2)
 
         #Still a problem because a state with no cust_count may be necessary to traverse on the path
@@ -263,7 +265,7 @@ class GameProblem(SearchProblem):
         self.CONFIG=conf
         self.AGENT_START = tuple(conf['agent']['start'])
 
-        initial_state,final_state, algorithm, customers = self.setup()
+        initial_state,final_state, algorithm = self.setup()
         if initial_state == False:
             print ('-- INITIALIZATION FAILED')
             return True
@@ -271,7 +273,6 @@ class GameProblem(SearchProblem):
         self.INITIAL_STATE=initial_state
         self.GOAL=final_state
         self.ALGORITHM=algorithm
-        self.CUSTOMERS=customers
         super(GameProblem,self).__init__(self.INITIAL_STATE)
             
         print ('-- INITIALIZATION OK')
