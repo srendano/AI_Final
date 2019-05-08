@@ -135,32 +135,22 @@ class GameProblem(SearchProblem):
     def heuristic(self, state):
         '''Returns the heuristic for `state`
         '''
+        xyA = state
         if state[2] == 0 and state[3] == 0:
-            xyA = state
             xyB = self.GOAL
+            return abs(xyA[0] - xyB[0]) + abs(xyA[1] - xyB[1])
         if state[2] == 0 and state[3] != 0:
             xyA = state
             xyB = self.POSITIONS['pizza']
-        if state[2] == 1:
+            return abs(xyA[0] - xyB[0][0]) + abs(xyA[1] - xyB[0][1])
+        if state[2] > 0:
             xyA = state
-            One_Cnt_state = (state[0], state[1])
-            #One_Cnt_dict = dict(map(reversed, state[4]))
-            inv_map = {}
-            for k, v in dict(state[4]).iteritems():
-                    inv_map[v] = inv_map.get(v, [])
-                    inv_map[v].append(k)
-            for mockState in inv_map[1]:
-                distance1 = abs(mockState[0] - [0]) + abs(xyA[1] - xyB[1])
-            print(new_state)
-
-            print(One_Cnt_dict)
-        if state[2] == 2:
-            xyA = state
-            Two_Cnt_state = (state[0], state[1])
-            Two_Cnt_dict = dict(map(reversed, state[4]))
-            xyB = Two_Cnt_dict[2]
-        return abs(xyA[0] - xyB[0]) + abs(xyA[1] - xyB[1])
-
+            if 'customer1' in self.POSITIONS:
+                xyB = self.POSITIONS['customer1']
+            if 'customer2' in self.POSITIONS:
+                xyB = self.POSITIONS['customer2']
+            return abs(xyA[0] - xyB[0][0]) + abs(xyA[1] - xyB[0][1])
+        return None
 
     def setup (self):
         '''This method must create the initial state, final state (if desired) and specify the algorithm to be used.
@@ -231,11 +221,11 @@ class GameProblem(SearchProblem):
 
         return initial_state,final_state, algorithm
 
-    # def printState (self,state):
+    def printState (self,state):
     #     '''Return a string to pretty-print the state '''
 
-    #     pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Total Order Count: ' + str(state[3])
-    #     return (pps)
+         pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Total Order Count: ' + str(state[3])
+         return (pps)
 
     def getPendingRequests (self,state):
         ''' Return the number of pending requests in the given position (0-N).
