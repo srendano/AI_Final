@@ -67,23 +67,16 @@ class GameProblem(SearchProblem):
         elif self.getAttribute((state[0], state[1] + 1), 'blocked'):
             actions.remove('South')
 
-        # #Load
-        # if state[0] == self.POSITIONS['pizza'][0][0] and state[1] == self.POSITIONS['pizza'][0][1] and state[2] < 2 and state[3] > 0: #and self.PIZZA_CNT < 2:
-        #     load_list = ['Load']
-        #     actions = load_list
-
-        #     #With this implementation there is a probably a bug when state[3] = 1, because it would make you pick up 2 pizzas (even tho u only need one)
-
         #Load
-        if state[0] == self.POSITIONS['pizza'][0][0] and state[1] == self.POSITIONS['pizza'][0][1] and state[2] < 2: #and self.PIZZA_CNT < 2:
+        load_state = (state[0], state[1])
+        if load_state in self.POSITIONS['pizza'] and state[2] < 2:
             actions.append('Load')
 
         #Unload
-        #if state == self.POSITIONS['customer1'][0] or state == self.POSITIONS['customer1'][1] or state == self.POSITIONS['customer2']:
-        #if self.getAttribute(state, 'unload') and self.PIZZA_CNT > 0:
 
         #if (state in self.POSITIONS['customer1'] or state in self.POSITIONS['customer2']) and state[2] > 0:
-       	if self.CUSTOMERS[state[0]][state[1]] > 0 and state[2] > 0:
+        unload_state = (state[0], state[1])
+        if unload_state in self.CUSTOMERS and state[2] > 0 and state[3] > 0:
        	    actions.append('Unload')
 
         return actions
@@ -112,8 +105,13 @@ class GameProblem(SearchProblem):
             #x,y unchanged, but state[2] "pizza_cnt" +1
 
         elif action == 'Unload':
-        	self.CUSTOMERS[state[0]][state[1]] -= 1
-        	next_state = (state[0], state[1], state[2] - 1, state[3] - 1, self.CUSTOMERS[state[0]][state[1]])
+            unload_state = (state[0], state[1])
+            unload_dict = dict(state[4])
+            unload_dict[unload_state] -= 1
+            items = unload_dict.items()
+            new_state = tuple(items)
+
+            next_state = (state[0], state[1], state[2] - 1, state[3] - 1, new_state)
             #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
         
         return next_state
@@ -124,10 +122,8 @@ class GameProblem(SearchProblem):
     def is_goal(self, state):
         '''Returns true if state is the final state
         '''
-        self.debugPrint(state)
-        #return state == self.GOAL
+        #self.debugPrint(state)
         return state == self.GOAL
-        #State == self.goal is to return to Base (should be final state once orders are fullfilled)
 
     def cost(self, state, action, state2):
         '''Returns the cost of applying `action` from `state` to `state2`.
@@ -154,45 +150,67 @@ class GameProblem(SearchProblem):
 	print 'POSITIONS: ', self.POSITIONS, '\n'
 	print 'CONFIG: ', self.CONFIG, '\n'
 
-        #Calculate Order_Cnt
+        #Calculate Total_Order_Cnt
         x_size = self.CONFIG['map_size'][0]
         y_size = self.CONFIG['map_size'][1]
 
-        customers = [[0 for i in range(y_size)] for j in range(x_size)]
         order_num = 0
         total_order_cnt = 0
         for x in range (x_size):
             for y in range (y_size):
                 curr_state = (x,y)
                 order_num = self.getInitialRequests(curr_state)
-                if order_num == None:
-                    order_num = 0
-                customers[x][y] += order_num
-                total_order_cnt += order_num
+                if order_num != None:
+                    total_order_cnt += order_num
 
-        print(customers)
+        customers_list = [ ]
+        if 'customer1' in self.POSITIONS:
+            for state in self.POSITIONS['customer1']:
+                customers_list.append(state)
+        if 'customer2' in self.POSITIONS:
+            for state in self.POSITIONS['customer2']:
+                customers_list.append(state)
 
-        self.CUSTOMERS = customers
-        customer_cnt = customers[self.AGENT_START[0]][ self.AGENT_START[1]]
+            customers = tuple(customers_list)
+            self.CUSTOMERS = customers
+
+        customers_dict = { }
+        if 'customer1' in self.POSITIONS:
+            for state in self.POSITIONS['customer1']:
+                customers_dict[state] = 1
+        if 'customer2' in self.POSITIONS:
+            for state in self.POSITIONS['customer2']:
+                customers_dict[state]  = 2
+
+            items = customers_dict.items()
+            customer_cnt = tuple(items)
 
         initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, customer_cnt)
-        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = customer_cnt
+        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = tuple list of customers and quantities (((4,3),2), ((9,1),1) ... )
 
-        final_customers =[(0 for i in range(y_size))for j in range(x_size)]
-        final_state = (self.POSITIONS['pizza'][0][0], self.POSITIONS['pizza'][0][1], 0, 0, 0)
-        #Tuple if state is location NOT list or dict
+        final_dict = { }
+        if 'customer1' in self.POSITIONS:
+            for state in self.POSITIONS['customer1']:
+                final_dict[state] = 0
+        if 'customer2' in self.POSITIONS:
+            for state in self.POSITIONS['customer2']:
+                final_dict[state]  = 0
+
+            final_items = final_dict.items()
+            final_customer_cnt = tuple(final_items)
+
+        final_state = (self.AGENT_START[0], self.AGENT_START[1], 0, 0, final_customer_cnt)
         
         #algorithm= simpleai.search.astar
-        #algorithm= simpleai.search.breadth_first
-        algorithm= simpleai.search.depth_first
-        #algorithm= simpleai.search.limited_depth_first
+        algorithm= simpleai.search.breadth_first
+        #algorithm= simpleai.search.depth_first
 
         return initial_state,final_state, algorithm
         
     def printState (self,state):
         '''Return a string to pretty-print the state '''
         
-        pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3])
+        pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Total Order Count: ' + str(state[3])
         return (pps)
 
     def getPendingRequests (self,state):
@@ -200,17 +218,13 @@ class GameProblem(SearchProblem):
             MUST return None if the position is not a customer.
             This information is used to show the proper customer image.
         '''
-        #if state == self.MAP['customer1'][0] or state == self.MAP['customer1'][1] or state == self.MAP['customer2']:
-        x = state[0]
-        y = state[1]
 
-        if self.CUSTOMERS[x][y] != 0:
-            return state[4][x][y]
+        check_state = (state[0], state[1])
+        if check_state in self.CUSTOMERS:
+            check_dict = dict(state[4])
+            return check_dict[check_state]
         else:
             return None
-
-        #This is only being called at the end? How can it update in real time on the map?
-
 
     # --------------- Helper Functions ----------------- 
 
