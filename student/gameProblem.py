@@ -11,7 +11,7 @@ import simpleai.search
 class GameProblem(SearchProblem):
 
     # Object attributes, can be accessed in the methods below
-    
+
     MAP=None
     POSITIONS=None
     INITIAL_STATE=None
@@ -47,7 +47,7 @@ class GameProblem(SearchProblem):
             actions.remove('West')
 
         #North
-        if (state[1] - 1) < 0: 
+        if (state[1] - 1) < 0:
             actions.remove('North')
 
         elif self.getAttribute((state[0], state[1] - 1), 'blocked'):
@@ -80,7 +80,7 @@ class GameProblem(SearchProblem):
        	    actions.append('Unload')
 
         return actions
-    
+
 
     def result(self, state, action):
         '''Returns the state reached from this state when the given action is executed
@@ -113,7 +113,7 @@ class GameProblem(SearchProblem):
 
             next_state = (state[0], state[1], state[2] - 1, state[3] - 1, new_state)
             #x,y unchanged, but state[2] "pizza_cnt" -1 and state[3] "overall_orders" -1
-        
+
         return next_state
 
         # The search algorithm will select a node among the expanded ones (fringe)
@@ -135,7 +135,31 @@ class GameProblem(SearchProblem):
     def heuristic(self, state):
         '''Returns the heuristic for `state`
         '''
-        return 0
+        if state[2] == 0 and state[3] == 0:
+            xyA = state
+            xyB = self.GOAL
+        if state[2] == 0 and state[3] != 0:
+            xyA = state
+            xyB = self.POSITIONS['pizza']
+        if state[2] == 1:
+            xyA = state
+            One_Cnt_state = (state[0], state[1])
+            #One_Cnt_dict = dict(map(reversed, state[4]))
+            inv_map = {}
+            for k, v in dict(state[4]).iteritems():
+                    inv_map[v] = inv_map.get(v, [])
+                    inv_map[v].append(k)
+            for mockState in inv_map[1]:
+                distance1 = abs(mockState[0] - [0]) + abs(xyA[1] - xyB[1])
+            print(new_state)
+
+            print(One_Cnt_dict)
+        if state[2] == 2:
+            xyA = state
+            Two_Cnt_state = (state[0], state[1])
+            Two_Cnt_dict = dict(map(reversed, state[4]))
+            xyB = Two_Cnt_dict[2]
+        return abs(xyA[0] - xyB[0]) + abs(xyA[1] - xyB[1])
 
 
     def setup (self):
@@ -200,21 +224,21 @@ class GameProblem(SearchProblem):
             final_customer_cnt = tuple(final_items)
 
         final_state = (self.AGENT_START[0], self.AGENT_START[1], 0, 0, final_customer_cnt)
-        
-        #algorithm= simpleai.search.astar
-        algorithm= simpleai.search.breadth_first
+
+        algorithm= simpleai.search.astar
+        #algorithm= simpleai.search.breadth_first
         #algorithm= simpleai.search.depth_first
 
         return initial_state,final_state, algorithm
-        
-    def printState (self,state):
-        '''Return a string to pretty-print the state '''
-        
-        pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Total Order Count: ' + str(state[3])
-        return (pps)
+
+    # def printState (self,state):
+    #     '''Return a string to pretty-print the state '''
+
+    #     pps= 'Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 'Total Order Count: ' + str(state[3])
+    #     return (pps)
 
     def getPendingRequests (self,state):
-        ''' Return the number of pending requests in the given position (0-N). 
+        ''' Return the number of pending requests in the given position (0-N).
             MUST return None if the position is not a customer.
             This information is used to show the proper customer image.
         '''
@@ -226,7 +250,7 @@ class GameProblem(SearchProblem):
         else:
             return None
 
-    # --------------- Helper Functions ----------------- 
+    # --------------- Helper Functions -----------------
 
     def getInitialRequests (self,state):
         #if state == self.MAP['customer1'][0] or state == self.MAP['customer1'][1] or state == self.MAP['customer2']:
@@ -237,10 +261,10 @@ class GameProblem(SearchProblem):
         else:
             return None
 
-    def debugPrint(self, state):
-        # print('Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' + 
+    #def debugPrint(self, state):
+        # print('Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' +
         #     'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3]) + '\n' + '---------------' + '\n')
-        print(state)
+        #print(state)
         #PROBLEM IS THAT BFS is getting to a point where state (9,0,0,2) has already been found so it will not find path through (4,3,0,2)
 
         #Still a problem because a state with no cust_count may be necessary to traverse on the path
@@ -254,7 +278,7 @@ class GameProblem(SearchProblem):
         '''Returns an attribute value for a given position of the map
            position is a tuple (x,y)
            attributeName is a string
-           
+
            Returns:
                None if the attribute does not exist
                Value of the attribute otherwise
@@ -271,7 +295,7 @@ class GameProblem(SearchProblem):
         if pendingItems >= 0:
             stateData['newType']='customer{}'.format(pendingItems)
         return stateData
-        
+
     # THIS INITIALIZATION FUNCTION HAS TO BE CALLED BEFORE THE SEARCH
     def initializeProblem(self,map,positions,conf,aiBaseName):
         self.MAP=map
@@ -283,13 +307,13 @@ class GameProblem(SearchProblem):
         if initial_state == False:
             print ('-- INITIALIZATION FAILED')
             return True
-      
+
         self.INITIAL_STATE=initial_state
         self.GOAL=final_state
         self.ALGORITHM=algorithm
         super(GameProblem,self).__init__(self.INITIAL_STATE)
-            
+
         print ('-- INITIALIZATION OK')
         return True
-        
-    # END initializeProblem 
+
+    # END initializeProblem
