@@ -75,10 +75,18 @@ class GameProblem(SearchProblem):
         #Unload
 
         #if (state in self.POSITIONS['customer1'] or state in self.POSITIONS['customer2']) and state[2] > 0:
+        '''
         unload_state = (state[0], state[1])
         if unload_state in self.CUSTOMERS and state[2] > 0 and state[3] > 0:
        	    actions.append('Unload')
 
+        return actions
+        '''
+        unload_state = (state[0], state[1])
+        unload_dict = dict(state[4])
+        if unload_state in unload_dict:
+            if unload_state in self.CUSTOMERS and state[2] > 0 and state[3] > 0 and unload_dict[unload_state] > 0:
+                actions.append('Unload')
         return actions
 
 
@@ -184,9 +192,12 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 customers_list.append(state)
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                customers_dict[state]  = 3
 
-            customers = tuple(customers_list)
-            self.CUSTOMERS = customers
+        customers = tuple(customers_list)
+        self.CUSTOMERS = customers
 
         customers_dict = { }
         if 'customer1' in self.POSITIONS:
@@ -195,9 +206,12 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 customers_dict[state]  = 2
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                customers_dict[state]  = 3
 
-            items = customers_dict.items()
-            customer_cnt = tuple(items)
+        items = customers_dict.items()
+        customer_cnt = tuple(items)
 
         initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, customer_cnt)
         #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = tuple list of customers and quantities (((4,3),2), ((9,1),1) ... )
@@ -209,9 +223,12 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 final_dict[state]  = 0
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                final_dict[state]  = 0
 
-            final_items = final_dict.items()
-            final_customer_cnt = tuple(final_items)
+        final_items = final_dict.items()
+        final_customer_cnt = tuple(final_items)
 
         final_state = (self.AGENT_START[0], self.AGENT_START[1], 0, 0, final_customer_cnt)
 
