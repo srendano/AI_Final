@@ -76,8 +76,10 @@ class GameProblem(SearchProblem):
 
         #if (state in self.POSITIONS['customer1'] or state in self.POSITIONS['customer2']) and state[2] > 0:
         unload_state = (state[0], state[1])
-        if unload_state in self.CUSTOMERS and state[2] > 0 and state[3] > 0:
-       	    actions.append('Unload')
+        unload_dict = dict(state[4])
+        if unload_state in unload_dict:
+            if unload_state in self.CUSTOMERS and state[2] > 0 and state[3] > 0 and unload_dict[unload_state] > 0:
+           	    actions.append('Unload')
 
         return actions
 
@@ -130,42 +132,133 @@ class GameProblem(SearchProblem):
            The returned value is a number (integer or floating point).
            By default this function returns `1`.
         '''
-        return 1
+
+        Implementation for Costs / Load
+        if(state[2] == 1):
+            return 2
+        if(state[2] == 2):
+            return 10
+        else:
+            return 1
+
+        #return self.getAttribute(state, 'cost')
 
     def heuristic(self, state):
         '''Returns the heuristic for `state`
         '''
 
-        if state[3] > 2:
-            #distance to base + distance to all remaining customers + distance to nearest pizza
-
-            base_distance = abs(state[0] - self.AGENT_START[0]) + abs(state[1] - self.AGENT_START[1])
-            
-            customer_distance = 0
+#----H1 - Admissible ------------------------------------------------------
+        if state[2] < state[3]:
+            customer_distance = []
             customer_dictionary = dict(state[4])
 
+            farthest_customer = 0
+            cust_calc = 0
+            cust_coord = [0 for x in range(2)]
+
             for cust_state in customer_dictionary:
-                 if customer_dictionary[cust_state] != 0:
-                     customer_distance += abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1])
+                if customer_dictionary[cust_state] != 0:
+                    cust_calc = abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1])
+                    customer_distance.append(cust_calc)
+                if cust_calc > farthest_customer:
+                    farthest_customer = cust_calc
+                    cust_coord[0] = cust_state[0]
+                    cust_coord[1] = cust_state[1]
 
             pizza_shops = []
+            pizza_calc = 0
+            closest_pizza = 0
+            pizza_coord = [0 for x in range(2)]
+
             for pizzaState in self.POSITIONS['pizza']:
-                pizza_shops.append(abs(pizzaState[0] - state[0]) + abs(pizzaState[1] - state[1]))
-            closest_pizza = min(pizza_shops)
+                pizza_calc = abs(pizzaState[0] - state[0]) + abs(pizzaState[1] - state[1])
+                pizza_shops.append(pizza_calc)
+                if pizza_calc < closest_pizza:
+                    closest_pizza = pizza_calc
+                    pizza_coord[0] = pizzaState[0]
+                    pizza_coord[1] = pizzaState[1]
 
-            return base_distance + closest_pizza + customer_distance
 
-        else: #state[3] <= 2:
-            base_distance = abs(state[0] - self.AGENT_START[0]) + abs(state[1] - self.AGENT_START[1])
+            pizza_to_base = abs(pizza_coord[0] - self.AGENT_START[0]) + abs(pizza_coord[1] - self.AGENT_START[1])
+            cust_to_base = abs(cust_coord[0] - self.AGENT_START[0]) + abs(cust_coord[1] - self.AGENT_START[1])
 
-            customer_distance = 0
+            base_distance = min(pizza_to_base, cust_to_base)
+
+
+            return max(closest_pizza, farthest_customer) + base_distance
+
+        elif state[3] > 0:
+            customer_distance = []
             customer_dictionary = dict(state[4])
 
-            for cust_state in customer_dictionary:
-                 if customer_dictionary[cust_state] != 0:
-                     customer_distance += abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1])
+            farthest_customer = 0
+            cust_calc = 0
+            cust_coord = [0 for x in range(2)]
 
-            return base_distance + customer_distance
+            for cust_state in customer_dictionary:
+                if customer_dictionary[cust_state] != 0:
+                    cust_calc = abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1])
+                    customer_distance.append(cust_calc)
+                if cust_calc > farthest_customer:
+                    farthest_customer = cust_calc
+                    cust_coord[0] = cust_state[0]
+                    cust_coord[1] = cust_state[1]
+
+            base_distance = abs(cust_coord[0] - self.AGENT_START[0]) + abs(cust_coord[1] - self.AGENT_START[1])
+
+            return farthest_customer + base_distance
+
+        else:
+            return 0
+
+
+
+# #----H2 - Admissible ------------------------------------------------------
+#         if state[2] < state[3]:
+#             customer_distance = []
+#             customer_dictionary = dict(state[4])
+
+#             for cust_state in customer_dictionary:
+#                  if customer_dictionary[cust_state] != 0:
+#                      customer_distance.append(abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1]))
+#             farthest_customer = max(customer_distance)
+
+#             pizza_shops = []
+#             for pizzaState in self.POSITIONS['pizza']:
+#                 pizza_shops.append(abs(pizzaState[0] - state[0]) + abs(pizzaState[1] - state[1]))
+#             closest_pizza = min(pizza_shops)
+
+#             return max(closest_pizza, farthest_customer)
+
+#         elif state[3] > 0:
+#             customer_distance = []
+#             customer_dictionary = dict(state[4])
+
+#             for cust_state in customer_dictionary:
+#                  if customer_dictionary[cust_state] != 0:
+#                      customer_distance.append(abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1]))
+#             return max(customer_distance)
+
+#         else:
+#             return 0
+
+
+
+# #----H3 - Admissible ------------------------------------------------------
+#         return abs(state[0] - self.AGENT_START[0]) + abs(state[1] - self.AGENT_START[1])
+
+
+
+# #----H4 - NOT Admissible ------------------------------------------------------
+#         customer_distance = 0
+#         customer_dictionary = dict(state[4])
+
+#         for cust_state in customer_dictionary:
+#             if customer_dictionary[cust_state] != 0:
+#                 customer_distance += abs(cust_state[0] - state[0]) + abs(cust_state[1] - state[1])
+
+#         return customer_distance
+
 
     def setup (self):
         '''This method must create the initial state, final state (if desired) and specify the algorithm to be used.
@@ -199,9 +292,12 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 customers_list.append(state)
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                customers_list.append(state)
 
-            customers = tuple(customers_list)
-            self.CUSTOMERS = customers
+        customers = tuple(customers_list)
+        self.CUSTOMERS = customers
 
         customers_dict = { }
         if 'customer1' in self.POSITIONS:
@@ -210,9 +306,12 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 customers_dict[state]  = 2
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                customers_dict[state]  = 3
 
-            items = customers_dict.items()
-            customer_cnt = tuple(items)
+        items = customers_dict.items()
+        customer_cnt = tuple(items)
 
         initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, customer_cnt)
         #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = tuple list of customers and quantities (((4,3),2), ((9,1),1) ... )
@@ -224,14 +323,17 @@ class GameProblem(SearchProblem):
         if 'customer2' in self.POSITIONS:
             for state in self.POSITIONS['customer2']:
                 final_dict[state]  = 0
+        if 'customer3' in self.POSITIONS:
+            for state in self.POSITIONS['customer3']:
+                final_dict[state]  = 0
 
-            final_items = final_dict.items()
-            final_customer_cnt = tuple(final_items)
+        final_items = final_dict.items()
+        final_customer_cnt = tuple(final_items)
 
         final_state = (self.AGENT_START[0], self.AGENT_START[1], 0, 0, final_customer_cnt)
 
-        algorithm= simpleai.search.astar
-        #algorithm= simpleai.search.breadth_first
+        #algorithm= simpleai.search.astar
+        algorithm= simpleai.search.breadth_first
         #algorithm= simpleai.search.depth_first
 
         return initial_state,final_state, algorithm

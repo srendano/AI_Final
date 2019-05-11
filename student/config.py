@@ -124,6 +124,19 @@ configuration = {
             {"agent":None,"image": "default"},
         "attributes":
             {"cost": 1, "blocked": True},
+        },
+        "uphill": {
+        "graphics":{ 
+            "default": "game/graphics/terrains/hillsTraversed100.png",
+            "traversed": "game/graphics/terrains/hillsTraversed100.png"
+            },
+        "id":  "uphill",
+        "marker": 'U',
+        "num": 0,
+        "state":
+            {"agent":None,"image": "default"},
+        "attributes":
+            {"cost": 5},
         }
     }   
 }
