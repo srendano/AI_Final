@@ -3,8 +3,8 @@ configuration = {
 "tile_size": 80,
 "type": "load", #random
 "seed": None,
-"file": "./student/map6b.txt",
-"map_size": [10, 4],
+"file": "./student/map2a.txt",
+"map_size": [11, 6],
 "delay": 0.1,
 "debugMap": False,
 "debug": False,
@@ -18,7 +18,7 @@ configuration = {
         },
     "id": "agent",
     "marker": 'A',
-    "start": [8,3],
+    "start": [0,0],
     },
 "maptiles": {
     "street": {

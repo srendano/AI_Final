@@ -130,7 +130,6 @@ class GameProblem(SearchProblem):
     def is_goal(self, state):
         '''Returns true if state is the final state
         '''
-        #self.debugPrint(state)
         return state == self.GOAL
 
     def cost(self, state, action, state2):
@@ -214,7 +213,9 @@ class GameProblem(SearchProblem):
         customer_cnt = tuple(items)
 
         initial_state = (self.AGENT_START[0], self.AGENT_START[1], 0, total_order_cnt, customer_cnt)
-        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt, state[3] = total_order_cnt, state[4] = tuple list of customers and quantities (((4,3),2), ((9,1),1) ... )
+        #state[0] = x-coordinate, state[1] = y-coordinate, state[2] = pizza_cnt,
+        #state[3] = total_order_cnt, state[4] = tuple list of customers and
+        #quantities (((4,3),2), ((9,1),1) ... )
 
         final_dict = { }
         if 'customer1' in self.POSITIONS:
@@ -232,9 +233,9 @@ class GameProblem(SearchProblem):
 
         final_state = (self.AGENT_START[0], self.AGENT_START[1], 0, 0, final_customer_cnt)
 
-        algorithm= simpleai.search.astar
+        #algorithm= simpleai.search.astar
         #algorithm= simpleai.search.breadth_first
-        #algorithm= simpleai.search.depth_first
+        algorithm= simpleai.search.depth_first
 
         return initial_state,final_state, algorithm
 
@@ -260,21 +261,12 @@ class GameProblem(SearchProblem):
     # --------------- Helper Functions -----------------
 
     def getInitialRequests (self,state):
-        #if state == self.MAP['customer1'][0] or state == self.MAP['customer1'][1] or state == self.MAP['customer2']:
         if self.getAttribute(state, 'unload'):
             tileAttributes = self.MAP[state[0]][state[1]][2]
             if 'objects' in tileAttributes.keys():
                 return tileAttributes['objects']
         else:
             return None
-
-    #def debugPrint(self, state):
-        # print('Coordinate: ' + str(state[0]) + ', ' + str(state[1]) + '\n' + 'Pizza Count: ' + str(state[2]) + '\n' +
-        #     'Customer Order Count: ' + str(self.CUSTOMERS[state[0]][state[1]]) + '\n' + 'Total Order Count: ' + str(state[3]) + '\n' + '---------------' + '\n')
-        #print(state)
-        #PROBLEM IS THAT BFS is getting to a point where state (9,0,0,2) has already been found so it will not find path through (4,3,0,2)
-
-        #Still a problem because a state with no cust_count may be necessary to traverse on the path
 
 
     # -------------------------------------------------------------- #
